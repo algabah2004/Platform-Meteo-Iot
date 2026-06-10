@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f766e">
+    <title>MeteoTank - Station IoT</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Navigation de la plateforme">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">M</span>
+                <div>
+                    <p class="brand-name">MeteoTank</p>
+                    <p class="brand-subtitle">Station ESP32</p>
+                </div>
+            </div>
+
+            <nav class="nav-list" aria-label="Sections">
+                <a class="nav-item active" href="#overview">Vue globale</a>
+                <a class="nav-item" href="#history">Historique</a>
+                <a class="nav-item" href="#control">Controle</a>
+            </nav>
+
+            <div class="station-card">
+                <p class="eyebrow">Station</p>
+                <p class="station-id" id="station-id">ESP32_STATION_01</p>
+                <div class="status-row">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-label">Verification...</span>
+                </div>
+                <p class="muted" id="last-update">Derniere mesure: --</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section class="hero-band" id="overview">
+                <div>
+                    <p class="eyebrow">Plateforme meteo connectee</p>
+                    <h1>Surveillance en temps reel de l'environnement et du reservoir</h1>
+                    <p class="hero-copy">Temperature, humidite, niveau d'eau, et pilotage de la LED depuis une interface claire pour ordinateur et telephone.</p>
+                </div>
+                <div class="weather-scene" aria-hidden="true">
+                    <span class="sun"></span>
+                    <span class="cloud cloud-one"></span>
+                    <span class="cloud cloud-two"></span>
+                    <span class="rain rain-one"></span>
+                    <span class="rain rain-two"></span>
+                    <span class="rain rain-three"></span>
+                </div>
+                <div class="hero-actions">
+                    <button class="icon-button" type="button" id="refresh-btn" title="Actualiser les donnees" aria-label="Actualiser les donnees">
+                        <span aria-hidden="true">↻</span>
+                    </button>
+                    <div class="live-pill">
+                        <span class="pulse" aria-hidden="true"></span>
+                        <span id="sync-label">Synchronisation</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="alert-banner" id="alert-banner" aria-live="polite">
+                <div>
+                    <p class="eyebrow">Alerte reservoir</p>
+                    <strong id="alert-title">Surveillance active</strong>
+                    <span id="alert-copy">La plateforme declenchera une alerte quand le niveau descend a 30%.</span>
+                </div>
+                <span class="alert-chip" id="alert-chip">Seuil 30%</span>
+            </section>
+
+            <section class="metric-grid" aria-label="Dernieres mesures">
+                <article class="metric-card temp-card">
+                    <div class="metric-topline">
+                        <span>Temperature</span>
+                        <span class="trend" id="temp-trend">--</span>
+                    </div>
+                    <p class="metric-value" id="temp-val">-- °C</p>
+                    <div class="meter">
+                        <span id="temp-meter"></span>
+                    </div>
+                    <p class="metric-note" id="temp-note">En attente de mesure</p>
+                </article>
+
+                <article class="metric-card hum-card">
+                    <div class="metric-topline">
+                        <span>Humidite</span>
+                        <span class="trend" id="hum-trend">--</span>
+                    </div>
+                    <p class="metric-value" id="hum-val">-- %</p>
+                    <div class="meter">
+                        <span id="hum-meter"></span>
+                    </div>
+                    <p class="metric-note" id="hum-note">En attente de mesure</p>
+                </article>
+
+                <article class="metric-card water-card">
+                    <div class="metric-topline">
+                        <span>Niveau d'eau</span>
+                        <span class="trend" id="water-trend">--</span>
+                    </div>
+                    <p class="metric-value" id="water-val">-- %</p>
+                    <div class="meter">
+                        <span id="water-meter"></span>
+                    </div>
+                    <p class="metric-note" id="water-note">En attente de mesure</p>
+                </article>
+            </section>
+
+            <section class="content-grid">
+                <article class="panel chart-panel" id="history">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Historique</p>
+                            <h2>Evolution des mesures</h2>
+                        </div>
+                        <select id="range-select" aria-label="Nombre de mesures">
+                            <option value="15">15 mesures</option>
+                            <option value="30" selected>30 mesures</option>
+                            <option value="60">60 mesures</option>
+                        </select>
+                    </div>
+                    <div class="chart-wrap">
+                        <canvas id="iotChart" aria-label="Graphique des mesures IoT"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel reservoir-panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Reservoir</p>
+                            <h2>Etat actuel</h2>
+                        </div>
+                        <span class="mini-badge" id="water-state">--</span>
+                    </div>
+                    <div class="tank-visual" aria-hidden="true">
+                        <div class="tank-fill" id="tank-fill"></div>
+                        <span id="tank-label">--%</span>
+                    </div>
+                    <div class="risk-list" id="risk-list">
+                        <p class="risk-item">Aucune donnee pour le moment.</p>
+                    </div>
+                </article>
+
+                <article class="panel control-panel" id="control">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Commande</p>
+                            <h2>LED ESP32</h2>
+                        </div>
+                        <span class="mini-badge" id="command-state">Pret</span>
+                    </div>
+                    <div class="segmented-control" role="group" aria-label="Controle de la LED">
+                        <button class="command-btn on" type="button" onclick="sendLedCommand('LED_ON')">Allumer</button>
+                        <button class="command-btn off" type="button" onclick="sendLedCommand('LED_OFF')">Eteindre</button>
+                    </div>
+                    <p class="status-message" id="status-message">La derniere commande apparaitra ici.</p>
+                </article>
+
+                <article class="panel table-panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Journal</p>
+                            <h2>Dernieres donnees</h2>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Heure</th>
+                                    <th>Temp.</th>
+                                    <th>Hum.</th>
+                                    <th>Eau</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table">
+                                <tr><td colspan="4">Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
