@@ -4,3 +4,15 @@ __pycache__/
 .vscode/
 backend/venv/
 include/credentials.h
+
+
+# Python
+backend/venv/
+backend/__pycache__/
+backend/iot_project.db
+.pytest_cache/
+
+# PlatformIO / ESP32
+.pio/
+.vscode/
+esp32_firmware/.pio/
