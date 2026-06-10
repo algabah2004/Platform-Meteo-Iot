@@ -1,6 +1,7 @@
 const DEFAULT_DEVICE_ID = "ESP32_STATION_01";
 const urlParams = new URLSearchParams(window.location.search);
-const API_URL = window.IOT_API_URL || urlParams.get("api") || getDefaultApiUrl();
+// Modification ici : On force l'URL de ton API Railway en ligne
+const API_URL = "https://web-production-6904f.up.railway.app";
 
 let iotChart;
 let refreshTimer;
